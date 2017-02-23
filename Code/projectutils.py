@@ -32,11 +32,27 @@ def count_cars(video_file,sleepTime,display_window_name):
 
 		#trying otsu thresholding
 		gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-		ret1, thresh = cv2.threshold(gray,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-		
+
+
+
+
+		#blurring each frame :: to aid in contour detection
+		blurred = cv2.GaussianBlur(gray,(29,29),0)
+		ret1, thresh = cv2.threshold(blurred,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+		cv2.imshow("Thresholded",thresh)
+
+
+
+
 		#Detecting contours
 		(_,cnt,_) = cv2.findContours(thresh,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
-		cv2.drawContours(frame,cnt,-1,(0,255,0),3)
+		for contour in cnt:
+			#need to find a suitable area range to filter the contours
+			(x,y,w,h) = cv2.boundingRect(contour)
+			cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255),2)
+
+
+		#cv2.drawContours(frame,cnt,-1,(0,255,0),3)
 		cv2.imshow(display_window_name,frame)
 
 
