@@ -26,9 +26,17 @@ def count_cars(video_file,sleepTime,display_window_name):
 	
 	cv2.namedWindow(display_window_name)
 	cap = cv2.VideoCapture(video_file)
+	reference_frame = None
+	image_area = None
+
 	while(cap.isOpened()):
 		#reading frame by frame
 		ret, frame = cap.read()
+
+		if ret is not None:
+			reference_frame = frame
+			image_area = frame.shape[0] * frame.shape[1]
+
 
 		#trying otsu thresholding
 		gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
@@ -48,12 +56,15 @@ def count_cars(video_file,sleepTime,display_window_name):
 		(_,cnt,_) = cv2.findContours(thresh,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
 		for contour in cnt:
 			#need to find a suitable area range to filter the contours
-			(x,y,w,h) = cv2.boundingRect(contour)
-			cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255),2)
+			contour_area = cv2.contourArea(contour)
+			if (contour_area >0.01 * image_area) and  (contour_area <0.3 * image_area):
+
+				(x,y,w,h) = cv2.boundingRect(contour)
+				cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255),2)
 
 
-		#cv2.drawContours(frame,cnt,-1,(0,255,0),3)
-		cv2.imshow(display_window_name,frame)
+				#cv2.drawContours(frame,cnt,-1,(0,255,0),3)
+				cv2.imshow(display_window_name,frame)
 
 
 
