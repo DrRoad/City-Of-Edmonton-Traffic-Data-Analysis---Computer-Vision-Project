@@ -35,7 +35,9 @@ def count_cars(video_file,sleepTime,display_window_name):
 
 		if ret is not None and reference_frame is None:
 			reference_frame = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+			reference_frame = cv2.GaussianBlur(reference_frame,(29,29),0)
 			image_area = frame.shape[0] * frame.shape[1]
+			continue
 
 
 		#trying otsu thresholding
@@ -48,8 +50,10 @@ def count_cars(video_file,sleepTime,display_window_name):
 
 		#blurring each frame :: to aid in contour detection
 		
-		ret1, thresh = cv2.threshold(delta,25,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+		ret1, thresh = cv2.threshold(delta,20,255,cv2.THRESH_BINARY)
+		thresh = cv2.dilate(thresh, None, iterations=2)
 		cv2.imshow("Thresholded",thresh)
+		#cv2.waitKey(0)
 
 
 
