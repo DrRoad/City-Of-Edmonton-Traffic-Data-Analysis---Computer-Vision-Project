@@ -43,8 +43,8 @@ def count_cars(video_file,sleepTime,x1,y1,x2,y2,trim_begin,trim_end,display_wind
 
 		frame = frame[:,500:1100,:]
 		#frame = cv2.line(frame,(100,650),(600,600),(255,0,255),5)
-		frame = cv2.line(frame,(100,600),(600,600),(0,0,255),5)
-		
+		frame = cv2.line(frame,(100,600),(600,600),(0,0,255),1)
+		frame = cv2.line(frame,(100,550),(600,550),(0,0,255),1)
 		#Getting the reference frame
 		if ret is not None and reference_frame is None:
 			reference_frame = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
@@ -89,7 +89,7 @@ def count_cars(video_file,sleepTime,x1,y1,x2,y2,trim_begin,trim_end,display_wind
 				M = cv2.moments(contour)
 				cX = int(M["m10"] / M["m00"])
 				cY = int(M["m01"] / M["m00"])
-				cv2.circle(frame, (cX, cY), 1, (255,111,251), 5)
+				cv2.circle(frame, (cX, cY), 1, (255,111,251), 1)
 				### The center point will be used to count the cars #######
 				(x,y,w,h) = cv2.boundingRect(contour)
 				#cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255),2)
@@ -101,12 +101,15 @@ def count_cars(video_file,sleepTime,x1,y1,x2,y2,trim_begin,trim_end,display_wind
 
 				#### Include the logic of line crossing ###########	
 				#### Logic 1 : Count the number of Color dots crossing the line
+				'''
 				line_check_array = frame[600,100:600,:]
 				cv2.imshow("line",line_check_array)
-				for x in line_check_array:
-					if x[0] == 255 :
-						print True
-
+				for  i in range(line_check_array.shape[0]):
+					for j in range(line_check_array.shape[1]):
+						x = line_check_array[i,j,:]
+						if x[0] == 255 and x[1]==111 and x[2] == 251:
+							print "Hello"
+				'''
 
 		#Video stops playing if 'q' or escapse is pressed
 		#Change the frame rate according to application
