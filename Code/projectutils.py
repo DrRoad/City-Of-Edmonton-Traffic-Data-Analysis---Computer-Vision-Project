@@ -38,6 +38,9 @@ def count_cars(video_file,sleepTime,x1,y1,x2,y2,trim_begin,trim_end,display_wind
 		#reading frame by frame
 		ret, frame = cap.read()
 
+		if ret is False:
+			exit()
+
 		frame = frame[:,500:1100,:]
 		frame = cv2.line(frame,(100,650),(590,600),(255,0,255),10)
 		
