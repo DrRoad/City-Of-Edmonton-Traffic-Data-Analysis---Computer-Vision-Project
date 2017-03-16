@@ -28,6 +28,11 @@ def count_cars(video_file,sleepTime,x1,y1,x2,y2,trim_begin,trim_end,display_wind
 	cap = cv2.VideoCapture(video_file)
 	reference_frame = None
 	image_area = None
+	fgbg = cv2.createBackgroundSubtractorMOG2()
+
+	ret, ref_frame = cap.read()
+	ref_frame = ref_frame[:,500:1100,:]
+	image_area = ref_frame.shape[0] * ref_frame.shape[1]
 
 	while(cap.isOpened()):
 		#reading frame by frame
@@ -35,38 +40,47 @@ def count_cars(video_file,sleepTime,x1,y1,x2,y2,trim_begin,trim_end,display_wind
 
 		frame = frame[:,500:1100,:]
 		frame = cv2.line(frame,(100,650),(590,600),(255,0,255),10)
-
+		
+		
 		#Getting the reference frame
 		if ret is not None and reference_frame is None:
 			reference_frame = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
 			reference_frame = cv2.GaussianBlur(reference_frame,(29,29),0)
 			image_area = frame.shape[0] * frame.shape[1]
 			continue
-
-
-		
+	
 		gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
 		#blurring each frame :: to aid in contour detection
 		blurred = cv2.GaussianBlur(gray,(29,29),0)
 
 		#finding the difference in frames
 		delta = cv2.absdiff(reference_frame, blurred)
-
+		
 		ret1, thresh = cv2.threshold(delta,30,255,cv2.THRESH_BINARY)
 		#dilate is done to close the small holes in the image
-		thresh = cv2.dilate(thresh, None, iterations=10)
+		thresh = cv2.dilate(thresh, None, iterations=5)
+		#cv2.imshow("Thresholded",thresh)
+		#cv2.waitKey(0)
+		
+		
+
+		'''
+		fgmask = fgbg.apply(frame)
+		ff = cv2.medianBlur(fgmask,7)
+		ret1, thresh = cv2.threshold(ff,128,255,cv2.THRESH_BINARY)
+
+
 		cv2.imshow("Thresholded",thresh)
 		#cv2.waitKey(0)
-
-
-
+		'''
 
 		#Detecting contours
-		(_,cnt,_) = cv2.findContours(thresh,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
+
+		(_,cnt,_) = cv2.findContours(thresh,cv2.RETR_LIST,cv2.CHAIN_APPROX_NONE)
 		for contour in cnt:
 			#need to find a suitable area range to filter the contours
 			contour_area = cv2.contourArea(contour)
-			if (contour_area >0.001 * image_area) and  (contour_area <0.2 * image_area):
+			if (contour_area >0.009 * image_area) and  (contour_area <0.10* image_area):
 
 				(x,y,w,h) = cv2.boundingRect(contour)
 				cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255),2)

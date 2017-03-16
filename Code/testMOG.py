@@ -7,6 +7,8 @@ while(1):
     fgmask = fgbg.apply(frame)
     ff =cv2.medianBlur(fgmask,7)
     ret, f = cv2.threshold(ff,127,255,cv2.THRESH_BINARY)
+    f = cv2.erode(f, None, iterations=1)
+    f = cv2.dilate(f, None, iterations=1)
     cv2.imshow('frame',f)
     cv2.imshow('shadow',ff)
     k = cv2.waitKey(30) & 0xff
