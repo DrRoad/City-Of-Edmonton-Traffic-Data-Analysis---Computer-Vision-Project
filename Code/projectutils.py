@@ -2,7 +2,7 @@ import cv2
 
 
 #To display the target video
-def play_video(video_file,sleepTime,display_window_name):
+def play_video(video_file,sleepTime,x1,y1,x2,y2,trim_begin,trim_end,display_window_name):
 	
 	cv2.namedWindow(display_window_name)
 	cap = cv2.VideoCapture(video_file)
@@ -22,7 +22,7 @@ def play_video(video_file,sleepTime,display_window_name):
 
 
 #This function will count the total number of cars in the video
-def count_cars(video_file,sleepTime,display_window_name):
+def count_cars(video_file,sleepTime,x1,y1,x2,y2,trim_begin,trim_end,display_window_name):
 	
 	cv2.namedWindow(display_window_name)
 	cap = cv2.VideoCapture(video_file)
@@ -33,6 +33,10 @@ def count_cars(video_file,sleepTime,display_window_name):
 		#reading frame by frame
 		ret, frame = cap.read()
 
+		frame = frame[:,500:1100,:]
+		frame = cv2.line(frame,(100,650),(590,600),(255,0,255),10)
+
+		#Getting the reference frame
 		if ret is not None and reference_frame is None:
 			reference_frame = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
 			reference_frame = cv2.GaussianBlur(reference_frame,(29,29),0)
@@ -40,18 +44,17 @@ def count_cars(video_file,sleepTime,display_window_name):
 			continue
 
 
-		#trying otsu thresholding
+		
 		gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+		#blurring each frame :: to aid in contour detection
 		blurred = cv2.GaussianBlur(gray,(29,29),0)
 
 		#finding the difference in frames
 		delta = cv2.absdiff(reference_frame, blurred)
 
-
-		#blurring each frame :: to aid in contour detection
-		
-		ret1, thresh = cv2.threshold(delta,20,255,cv2.THRESH_BINARY)
-		thresh = cv2.dilate(thresh, None, iterations=2)
+		ret1, thresh = cv2.threshold(delta,30,255,cv2.THRESH_BINARY)
+		#dilate is done to close the small holes in the image
+		thresh = cv2.dilate(thresh, None, iterations=10)
 		cv2.imshow("Thresholded",thresh)
 		#cv2.waitKey(0)
 
