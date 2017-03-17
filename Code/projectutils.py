@@ -1,7 +1,11 @@
 import cv2
 import numpy as np
-
+import random 
+from clusterMeanShift import cluster
 #To display the target video
+stat_array = []
+car_in = False # to check if the car is actively being tracked or not 
+vehicle_count = 0 
 def play_video(video_file,sleepTime,x1,y1,x2,y2,trim_begin,trim_end,display_window_name):
 	
 	cv2.namedWindow(display_window_name)
@@ -23,6 +27,11 @@ def play_video(video_file,sleepTime,x1,y1,x2,y2,trim_begin,trim_end,display_wind
 
 #This function will count the total number of cars in the video
 def count_cars(video_file,sleepTime,x1,y1,x2,y2,trim_begin,trim_end,display_window_name):
+	global stat_array # keeps track of the positions where car crosses the line ::: Logic variable 
+	global vehicle_count
+	global car_in
+
+
 	target_row =  600
 	cv2.namedWindow(display_window_name)
 	cap = cv2.VideoCapture(video_file)
@@ -39,14 +48,15 @@ def count_cars(video_file,sleepTime,x1,y1,x2,y2,trim_begin,trim_end,display_wind
 		ret, frame = cap.read()
 
 		if ret is False:
+			print vehicle_count
 			exit()
 
 		frame = frame[:,500:1100,:]
-
+		frame = np.array(frame,dtype='uint8')
 		#frame = cv2.line(frame,(100,650),(600,600),(255,0,255),5)
 		frame = cv2.line(frame,(100,600),(600,600),(0,0,255),1)
-		frame = cv2.line(frame,(100,550),(600,550),(0,0,255),1)
-		frame = np.array(frame,dtype='uint8')
+		#frame = cv2.line(frame,(100,550),(600,550),(0,0,255),1)
+		
 		
 
 		#Getting the reference frame
@@ -89,14 +99,16 @@ def count_cars(video_file,sleepTime,x1,y1,x2,y2,trim_begin,trim_end,display_wind
 			contour_area = cv2.contourArea(contour)
 			if (contour_area >0.009 * image_area) and  (contour_area <0.10* image_area):
 				
+
 				### Moments are required to calculate the center point ###
-				M = cv2.moments(contour)
-				cX = int(M["m10"] / M["m00"])
-				cY = int(M["m01"] / M["m00"])
-				cv2.circle(frame, (cX, cY), 1, (255,111,251), 1)
+				#M = cv2.moments(contour)
+				#cX = int(M["m10"] / M["m00"])
+				#cY = int(M["m01"] / M["m00"])
+				#cv2.circle(frame, (cX, cY), 1, (255,111,251), 1)
 				### The center point will be used to count the cars #######
 				(x,y,w,h) = cv2.boundingRect(contour)
 				cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255),2)
+				cv2.line(frame,(x+w/2,y),(x+w/2,y+h),(255,0,0),3)
 
 
 
@@ -104,9 +116,53 @@ def count_cars(video_file,sleepTime,x1,y1,x2,y2,trim_begin,trim_end,display_wind
 				cv2.imshow(display_window_name,frame)
 
 				#### Include the logic of line crossing ###########	
-				#### Logic 1 : Count the number of Color dots crossing the line
+				#### Logic 1 : Count the number of Color dots crossing the line [Does Not Work]
+				#### Logic 2 : Use Random color lines and count the number of unique lines. When car not passing refresh array [Does not work]
+				#### Logic 3 : Statistics approach
+
+				
+				line_check_array = frame[600,100:600,0] #The RED line color marker (0,0,255) 
+				# The Blue component of the line should be blue in color 
+				#print line_check_array
+
+				for i in range(len(line_check_array)):
+					if line_check_array[i] != 0: 
+						car_in = True
+						## It toched the line 
+						## Keep counting and inserting the array from now
+						## 
+						stat_array.append(i+100)
+						
+					else:
+						continue 
+				
+				if car_in == True :
+					# means that in this frame the car was being tracked
+					# change the state to false
+					car_in=False
+				else:
+					#car_in was false :: meaning that the car was abset in this frame 
+					#this is where i will compute the threshold stats and sed it for clustering
+
+					#find range = max-min from the cluster .... to get the range
+					if len(stat_array) > 0:
+						#case when video starts and no cars are still at the line and array contains nothing
+						diff = max(stat_array) - min(stat_array)
+						if (diff <80):
+							#means that only one vehicle was present
+							vehicle_count = vehicle_count + 1 
+						else:
+							#since vehicles are more than 1 send for clustering
+							clusters = cluster(stat_array)
+							vehicle_count = vehicle_count + clusters
+						#cleaning the array for further analysis
+						del stat_array[:]
+
+
+				#print line_check_array[0]
+				
+
 				'''
-				line_check_array = frame[600,100:600,:]
 				cv2.imshow("line",line_check_array)
 				for  i in range(line_check_array.shape[0]):
 					for j in range(line_check_array.shape[1]):
@@ -118,7 +174,8 @@ def count_cars(video_file,sleepTime,x1,y1,x2,y2,trim_begin,trim_end,display_wind
 		#Video stops playing if 'q' or escapse is pressed
 		#Change the frame rate according to application
 		if cv2.waitKey(25) == ord('q'):
+			print vehicle_count
 			break
-
+	
 	cap.release()
 	cv2.destroyAllWindows()
