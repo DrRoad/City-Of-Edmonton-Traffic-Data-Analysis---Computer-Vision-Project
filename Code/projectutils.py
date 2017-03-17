@@ -78,7 +78,7 @@ def count_cars(video_file,sleepTime,x1,y1,x2,y2,trim_begin,trim_end,display_wind
 		ret1, thresh = cv2.threshold(delta,30,255,cv2.THRESH_BINARY)
 		#dilate is done to close the small holes in the image
 		thresh = cv2.dilate(thresh, None, iterations=5)
-		cv2.imshow("Thresholded",thresh)
+		#cv2.imshow("Thresholded",thresh)
 		#cv2.waitKey(0)
 		
 		
@@ -175,7 +175,7 @@ def count_cars(video_file,sleepTime,x1,y1,x2,y2,trim_begin,trim_end,display_wind
 
 		#Video stops playing if 'q' or escapse is pressed
 		#Change the frame rate according to application
-		if cv2.waitKey(25) == ord('q'):
+		if cv2.waitKey(sleepTime) == ord('q'):
 			print vehicle_count
 			break
 	
