@@ -1,5 +1,5 @@
 import cv2
-
+import numpy as np
 
 #To display the target video
 def play_video(video_file,sleepTime,x1,y1,x2,y2,trim_begin,trim_end,display_window_name):
@@ -42,9 +42,13 @@ def count_cars(video_file,sleepTime,x1,y1,x2,y2,trim_begin,trim_end,display_wind
 			exit()
 
 		frame = frame[:,500:1100,:]
+
 		#frame = cv2.line(frame,(100,650),(600,600),(255,0,255),5)
 		frame = cv2.line(frame,(100,600),(600,600),(0,0,255),1)
 		frame = cv2.line(frame,(100,550),(600,550),(0,0,255),1)
+		frame = np.array(frame,dtype='uint8')
+		
+
 		#Getting the reference frame
 		if ret is not None and reference_frame is None:
 			reference_frame = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
@@ -62,7 +66,7 @@ def count_cars(video_file,sleepTime,x1,y1,x2,y2,trim_begin,trim_end,display_wind
 		ret1, thresh = cv2.threshold(delta,30,255,cv2.THRESH_BINARY)
 		#dilate is done to close the small holes in the image
 		thresh = cv2.dilate(thresh, None, iterations=5)
-		#cv2.imshow("Thresholded",thresh)
+		cv2.imshow("Thresholded",thresh)
 		#cv2.waitKey(0)
 		
 		
@@ -92,7 +96,7 @@ def count_cars(video_file,sleepTime,x1,y1,x2,y2,trim_begin,trim_end,display_wind
 				cv2.circle(frame, (cX, cY), 1, (255,111,251), 1)
 				### The center point will be used to count the cars #######
 				(x,y,w,h) = cv2.boundingRect(contour)
-				#cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255),2)
+				cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255),2)
 
 
 
