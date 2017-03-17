@@ -57,6 +57,8 @@ def count_cars(video_file,sleepTime,x1,y1,x2,y2,trim_begin,trim_end,display_wind
 		frame = cv2.line(frame,(100,600),(600,600),(0,0,255),1)
 		#frame = cv2.line(frame,(100,550),(600,550),(0,0,255),1)
 		
+		#Count-Vehicles Test
+		cv2.putText(frame, "Cars : {}".format(vehicle_count), (10, 30),cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0,255), 2)
 		
 
 		#Getting the reference frame
